@@ -1,2 +1,0 @@
-# Payment
-Payment Html
