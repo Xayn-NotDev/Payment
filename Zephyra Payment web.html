@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zephyra - All Payment</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            overflow-x: hidden;
+            color: #fff;
+            position: relative;
+            min-height: 100vh;
+            background: #000000; /* Solid black background */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23000000"/><circle cx="10" cy="90" r="2" fill="%23333333"/><circle cx="30" cy="85" r="1.5" fill="%23333333"/><circle cx="50" cy="92" r="2.5" fill="%23333333"/><circle cx="70" cy="88" r="1" fill="%23333333"/><circle cx="90" cy="95" r="2" fill="%23333333"/><rect x="0" y="95" width="100" height="5" fill="%23222222"/></svg>'); /* Subtle ground-like texture */
+            background-repeat: repeat;
+            background-size: 100px 100px;
+        }
+
+        /* Navigation Menu */
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .nav-tab {
+            padding: 0.5rem 1rem;
+            margin: 0 0.5rem;
+            background: transparent;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            font-weight: 600;
+        }
+
+        .nav-tab:hover, .nav-tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Home Section */
+        .home-section {
+            text-align: center;
+        }
+
+        .home-section h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #ffffff, #a5b4fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .home-section p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        /* Payment Section (Existing Grid) */
+        .payment-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .payment-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .payment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .payment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            justify-content: center;
+        }
+
+        .payment-icon {
+            width: 60px;
+            height: 60px;
+            margin-right: 1rem;
+            object-fit: contain;
+        }
+
+        .payment-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .payment-description {
+            margin-bottom: 1.5rem;
+            opacity: 0.8;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .account-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.2rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            width: 100%;
+        }
+
+        .account-info:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .account-number {
+            font-size: 1.1rem;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .payment-button {
+            display: inline-block;
+            padding: 0.75rem 1.25rem;
+            background: linear-gradient(45deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            text-align: center;
+            flex: 1;
+            max-width: 200px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .payment-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4), inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .whatsapp-button {
+            background: linear-gradient(45deg, #25D366, #128C7E);
+        }
+
+        .whatsapp-button:hover {
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4), inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* Information Section */
+        .info-section {
+            text-align: center;
+        }
+
+        .info-section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-section p {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .update-button {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(45deg, #f09433, #e6683c);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .update-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .copy-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 200, 100, 0.9);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            animation: fadeInOut 2s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translateY(-20px); }
+            10%, 90% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Welcome Notification for Gmail Role */
+        .welcome-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            color: #000;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            z-index: 1001;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* QRIS Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            padding: 2.5rem;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.6);
+            transition: color 0.2s ease;
+        }
+
+        .close-modal:hover {
+            color: white;
+        }
+
+        .qris-image {
+            width: 250px;
+            height: 250px;
+            margin: 1.5rem auto;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qris-image img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .instructions {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem 0;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-menu {
+                flex-direction: column;
+                align-items: center;
+            }
+            .nav-tab {
+                margin: 0.25rem 0;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .payment-options {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .payment-card {
+                padding: 1.5rem;
+            }
+            .button-group {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .payment-button {
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Menu -->
+    <nav class="nav-menu">
+        <button class="nav-tab active" data-tab="home">Home</button>
+        <button class="nav-tab" data-tab="payment">Payment</button>
+        <button class="nav-tab" data-tab="information">Information</button>
+    </nav>
+
+
+    <!-- Copy Notification -->
+    <div class="copy-notification" id="copyNotification">
+        Nomor Berhasil Di Copy
+    </div>
+
+    <!-- Home Section -->
+    <div class="content-section home-section active" id="home">
+        <h1>Zephyra</h1>
+        <p>Hai Apakah Kamu Ingin Membayar Jika ingin membayar pencet tombol payment diatas yaa</p>
+    </div>
+
+    <!-- Payment Section -->
+    <div class="content-section payment-section" id="payment">
+        <div class="payment-options">
+            <!-- QRIS Payment -->
+            <div class="payment-card" id="qris-card">
+                <div class="payment-header">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/1200px-QR_code_for_mobile_English_Wikipedia.svg.png" alt="QRIS" class="payment-icon">
+                    <div>
+                        <h3 class="payment-title">QRIS Payment</h3>
+                    </div>
+                </div>
+                <p class="payment-description">Scan Code Qris Untuk Melakukan Pembayaran All Pay</p>
+                <button class="payment-button" id="pay-with-qris">Show QR Code</button>
+            </div>
+
+            <!-- Dana Payment -->
+            <div class="payment-card">
+                <div class="payment-header">
+                    <img src="https://img100.pixhost.to/images/667/540082364_skyzopedia.jpg" alt="DANA" class="payment-icon">
+                    <div>
+                        <h3 class="payment-title">DANA</h3>
+                    </div>
+                </div>
+                <p class="payment-description">Bayar Menggunakan Dana</p>
+                <div class="account-info" data-number="085213859916">
+                    <div class="account-number">0852-1385-9916</div>
+                </div>
+                <div class="button-group">
+                    <button class="payment-button" id="pay-with-dana">Pay with DANA</button>
+                    <a href="https://wa.me/62852?text=Halo%20admin,%20saya%20ingin%20konfirmasi%20pembayaran%20via%20DANA" class="payment-button whatsapp-button" target="_blank">Confirm via WA</a>
+                </div>
+            </div>
+
+            <!-- GoPay Payment -->
+            <div class="payment-card">
+                <div class="payment-header">
+                    <img src="https://img100.pixhost.to/images/667/540083275_skyzopedia.jpg" alt="GoPay" class="payment-icon">
+                    <div>
+                        <h3 class="payment-title">GoPay</h3>
+                    </div>
+                </div>
+                <p class="payment-description">Bayar Menggunakan Gopay</p>
+                <div class="account-info" data-number="085213859916">
+                    <div class="account-number">0852-1385-9916</div>
+                </div>
+                <div class="button-group">
+                    <button class="payment-button" id="pay-with-gopay">Pay with GoPay</button>
+                    <a href="https://wa.me/6285213859916?text=Halo%20admin,%20saya%20ingin%20konfirmasi%20pembayaran%20via%20GoPay" class="payment-button whatsapp-button" target="_blank">Confirm via WA</a>
+                </div>
+            </div>
+
+            <!-- OVO Payment -->
+            <div class="payment-card">
+                <div class="payment-header">
+                    <img src="https://img100.pixhost.to/images/667/540082774_skyzopedia.jpg" alt="OVO" class="payment-icon">
+                    <div>
+                        <h3 class="payment-title">OVO</h3>
+                    </div>
+                </div>
+                <p class="payment-description">Mohon Maaf Ovo Saat Ini Sedang Tidak Tersedia</p>
+                <div class="account-info" data-number="085213859916">
+                    <div class="account-number">0852-1385-9916</div>
+                </div>
+                <div class="button-group">
+                    <button class="payment-button" id="pay-with-ovo">Pay with OVO</button>
+                    <a href="https://wa.me/6285213859916?text=Halo%20admin,%20saya%20ingin%20konfirmasi%
