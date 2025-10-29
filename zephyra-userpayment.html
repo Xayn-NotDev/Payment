@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zephyra - Payment Gateway</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #0a0e27;
+            color: #e0e7ff;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Dynamic Color Variables */
+        :root {
+            --primary-color: #8b5cf6;
+            --primary-light: #a855f7;
+            --primary-dark: #7c3aed;
+        }
+
+        /* Animated Grid Background */
+        .grid-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary-color);
+            animation: float 8s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(139, 92, 246, 0.02) 51%);
+            background-size: 100% 4px;
+            z-index: 2;
+            pointer-events: none;
+            animation: scan 8s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100vh); }
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 1rem 2rem;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--primary-light);
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-light);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-logout {
+            padding: 0.5rem 1.2rem;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            color: #f87171;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        /* Login Screen */
+        .login-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+            z-index: 3;
+        }
+
+        .login-box {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            min-width: 400px;
+            box-shadow: 0 25px 60px rgba(139, 92, 246, 0.3);
+        }
+
+        .login-box h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .login-box p {
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 3;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 5rem 2rem 3rem;
+        }
+
+        /* Owner Dashboard */
+        .owner-dashboard {
+            display: none;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .dashboard-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-light);
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .setting-section {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .setting-section h3 {
+            color: var(--primary-light);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            color: #e0e7ff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .color-preview {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            border: 2px solid rgba(139, 92, 246, 0.5);
+            margin-top: 0.5rem;
+        }
+
+        .btn-save {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .logo-container {
+            display: inline-block;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .logo-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-light), var(--primary-dark));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            animation: gradientShift 3s ease infinite;
+            text-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+            position: relative;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.2rem;
+            color: #c4b5fd;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-top: 1rem;
+            font-weight: 300;
+        }
+
+        .divider {
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+            margin: 2rem auto;
+        }
+
+        .payment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .payment-module {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .payment-module::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .payment-module:hover::before {
+            left: 100%;
+        }
+
+        .payment-module:hover {
+            transform: translateY(-8px);
+            border-color: rgba(139, 92, 246, 0.6);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.2), inset 0 0 20px rgba(139, 92, 246, 0.05);
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .icon-wrapper {
+            width: 60px;
+            height: 60px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-border {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .payment-icon {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.6));
+        }
+
+        .module-info h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            color: var(--primary-light);
+            margin-bottom: 0.3rem;
+            letter-spacing: 2px;
+        }
+
+        .module-info p {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            font-weight: 300;
+        }
+
+        .account-display {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 10px;
+            padding: 1.2rem;
+            margin: 1.5rem 0;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .account-display:hover {
+            background: rgba(139, 92, 246, 0.05);
+            border-color: rgba(139, 92, 246, 0.6);
+        }
+
+        .account-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .account-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: var(--primary-light);
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+
+        .copy-indicator {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            color: #64748b;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .account-display:hover .copy-indicator {
+            opacity: 1;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-primary {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-secondary {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid var(--primary-color);
+            border-radius: 8px;
+            color: var(--primary-light);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(139, 92, 246, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid #4ade80;
+        }
+
+        .status-inactive {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid #f87171;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+            border: 2px solid rgba(139, 92, 246, 0.5);
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 25px 60px rgba(139, 92, 246, 0.3);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        .modal-close:hover {
+            background: var(--primary-color);
+            color: #0a0e27;
+            transform: rotate(90deg);
+        }
+
+        .modal h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-light);
+            text-align: center;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            letter-spacing: 3px;
+        }
+
+        .modal p {
+            text-align: center;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin: 2rem auto;
+            width: fit-content;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+        }
+
+        .qr-container img {
+            width: 250px;
+            height: 250px;
+            display: block;
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--primary-color);
+            padding: 1rem 1.5rem;
+            margin-top: 2rem;
+            border-radius: 8px;
+        }
+
+        .instructions ol {
+            margin-left: 1.2rem;
+            color: #cbd5e1;
+            line-height: 1.8;
+        }
+
+        .notification {
+            position: fixed;
+            top: 5rem;
+            right: 2rem;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.5);
+            z-index: 2000;
+            display: none;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            letter-spacing: 1px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 5rem;
+            padding: 3rem 0;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        footer p {
+            margin: 0.5rem 0;
+        }
+
+        .footer-brand {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-light);
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+                letter-spacing: 4px;
+            }
+
+            .payment-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .container {
+                padding: 5rem 1rem 2rem;
+            }
+
+            .login-box {
+                min-width: 90%;
+                padding: 2rem;
+            }
+
+            .nav-menu {
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="grid-background"></div>
+    <div class="particles" id="particles"></div>
+    <div class="scanline"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar hidden" id="navbar">
+        <div class="nav-brand">ZEPHYRA</div>
+        <div class="nav-menu">
+            <a class="nav-link" id="navPayments">Payments</a>
+            <a class="nav-link hidden" id="navDashboard">Dashboard</a>
+            <div class="user-info">
+                <img src="" alt="User" class="user-avatar hidden" id="userAvatar">
+                <span id="userName"></span>
+                <button class="btn-logout" id="btnLogout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        NUMBER COPIED TO CLIPBOARD
+    </div>
+
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <h1>ZEPHYRA</h1>
+            <p>Advanced Payment Gateway System</p>
+            <div class="divider"></div>
+            <div id="g_id_onload"
+                 data-client_id="YOUR_GOOGLE_CLIENT_ID"
+                 data-callback="handleCredentialResponse">
+            </div>
+            <div class="g_id_signin" data-type="standard"></div>
+            <p style="margin-top: 2rem; font-size: 0.9rem;">Sign in with Google to continue</p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container hidden" id="mainContent">
+        <!-- Owner Dashboard -->
+        <div class="owner-dashboard" id="ownerDashboard">
+            <h2 class="dashboard-title">OWNER DASHBOARD</h2>
+            <div class="settings-grid">
+                <!-- Color Settings -->
+                <div class="setting-section">
+                    <h3>Color Theme</h3>
+                    <div class="form-group">
+                        <label>Primary Color</label>
+                        <input type="color" class="form-input" id="primaryColor" value="#8b5cf6">
+                        <div class="color-preview" id="primaryPreview" style="background: #8b5cf6;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Secondary Color</label>
+                        <input type="color" class="form-input" id="secondaryColor" value="#a855f7">
+                        <div class="color-preview" id="secondaryPreview" style="background: #a855f7;"></div>
+                    </div>
+                    <button class="btn-save" id="saveColors">Save Colors</button>
+                </div>
+
+                <!-- Payment Numbers -->
+                <div class="setting-section">
+                    <h3>Payment Numbers</h3>
+                    <div class="form-group">
+                        <label>DANA / GoPay / OVO Number</label>
+                        <input type="text" class="form-input" id="walletNumber" value="0852-1385-9916" placeholder="0812-3456-7890">
+                    </div>
+                    <div class="form-group">
+                        <label>SeaBank Account</label>
+                        <input type="text" class="form-input" id="seabankNumber" value="1234567890" placeholder="1234567890">
+                    </div>
+                    <button class="btn-save" id="saveNumbers">Save Numbers</button>
+                </div>
+
+                <!-- QRIS Settings -->
+                <div class="setting-section">
+                    <h3>QRIS Settings</h3>
+                    <div class="form-group">
+                        <label>QRIS Image URL</label>
+                        <input type="text" class="form-input" id="qrisUrl" value="https://files.catbox.moe/o3iiuy.png" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp Number (without +62)</label>
+                        <input type="text" class="form-input" id="whatsappNumber" value="85213859916" placeholder="81234567890">
+                    </div>
+                    <button class="btn-save" id="saveQris">Save QRIS</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Section -->
+        <header>
+            <div class="logo-container">
+                <div class="logo-glow"></div>
+                <h1>ZEPHYRA</h1>
+            </div>
+            <p class="subtitle">Advanced Payment Gateway System</p>
+            <div class="divider"></div>
+        </header>
+
+        <div class="payment-grid" id="paymentGrid">
+            <!-- Payment cards will be generated here -->
+        </div>
+    </div>
+
+    <!-- QRIS Modal -->
+    <div class="modal" id="qrisModal">
+        <div class="modal-content">
+            <div class="modal-close" id="closeModal">×</div>
+            <h2>QRIS PAYMENT</h2>
+            <p>Scan the QR code below to complete your payment</p>
+            <div class="qr-container">
+                <img src="https://files.catbox.moe/o3iiuy.png" alt="QRIS Code" id="qrisImage">
+            </div>
+            <div class="instructions">
+                <ol>
+                    <li>Open your banking or e-wallet app</li>
+                    <li>Select QRIS payment option</li>
+                    <li>Scan this QR code</li>
+                    <li>Complete the transaction</li>
+                </ol>
+            </div>
+            <div class="action-buttons" style="margin-top: 2rem;">
+                <button class="btn-primary" id="confirmPayment">PAYMENT COMPLETE</button>
+                <a href="https://wa.me/6285213859916?text=Hello%2C%20I%20want%20to%20confirm%20QRIS%20payment" class="btn-secondary" target="_blank" id="waConfirm">CONFIRM VIA WA</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p class="footer-brand">ZEPHYRA</p>
+        <p>© 2025 Zephyra Payment Systems. All Rights Reserved.</p>
+        <p>Powered by Advanced Gateway Technology</p>
+    </footer>
+
+    <script>
+        // Configuration stored in memory
+        let config = {
+            primaryColor: '#8b5cf6',
+            secondaryColor: '#a855f7',
+            walletNumber: '0852-1385-9916',
+            seabankNumber: '1234567890',
+            qrisUrl: 'https://files.catbox.moe/o3iiuy.png',
+            whatsappNumber: '85213859916'
+        };
+
+        let currentUser = null;
+        const OWNER_EMAILS = ['owner@zephyra.com', 'admin@zephyra.com']; // Add your owner email here
+
+        // Initialize
+        function init() {
+            createParticles();
+            checkStoredUser();
+        }
+
+        // Check if user is already logged in
+        function checkStoredUser() {
+            const storedUser = sessionStorage.getItem('zephyra_user');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                showMainContent();
+            }
+        }
+
+        // Google Sign-In Handler
+        function handleCredentialResponse(response) {
+            const credential = response.credential;
+            const payload = parseJwt(credential);
+            
+            currentUser = {
+                email: payload.email,
+                name: payload.name,
+                picture: payload.picture,
+                isOwner: OWNER_EMAILS.includes(payload.email.toLowerCase())
+            };
+
+            sessionStorage.setItem('zephyra_user', JSON.stringify(currentUser));
+            showMainContent();
+        }
+
+        // Parse JWT token
+        function parseJwt(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        // Show main content after login
+        function showMainContent() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('navbar').classList.remove('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            
+            // Update navbar
+            document.getElementById('userName').textContent = currentUser.name;
+            if (currentUser.picture) {
+                const avatar = document.getElementById('userAvatar');
+                avatar.src = currentUser.picture;
+                avatar.classList.remove('hidden');
+            }
+
+            // Show dashboard link for owner
+            if (currentUser.isOwner) {
+                document.getElementById('navDashboard').classList.remove('hidden');
+                document.getElementById('ownerDashboard').style.display = 'block';
+            }
+
+            loadConfig();
+            renderPaymentCards();
+        }
+
+        // Load configuration
+        async function loadConfig() {
+            try {
+                const stored = await window.storage.get('zephyra_config');
+                if (stored && stored.value) {
+                    config = JSON.parse(stored.value);
+                    applyConfig();
+                }
+            } catch (e) {
+                console.log('Using default config');
+            }
+        }
+
+        // Apply configuration to UI
+        function applyConfig() {
+            document.documentElement.style.setProperty('--primary-color', config.primaryColor);
+            document.documentElement.style.setProperty('--primary-light', config.secondaryColor);
+            document.documentElement.style.setProperty('--primary-dark', config.primaryColor);
+
+            // Update form inputs if owner
+            if (currentUser && currentUser.isOwner) {
+                document.getElementById('primaryColor').value = config.primaryColor;
+                document.getElementById('secondaryColor').value = config.secondaryColor;
+                document.getElementById('primaryPreview').style.background = config.primaryColor;
+                document.getElementById('secondaryPreview').style.background = config.secondaryColor;
+                document.getElementById('walletNumber').value = config.walletNumber;
+                document.getElementById('seabankNumber').value = config.seabankNumber;
+                document.getElementById('qrisUrl').value = config.qrisUrl;
+                document.getElementById('whatsappNumber').value = config.whatsappNumber;
+            }
+
+            // Update QRIS image
+            document.getElementById('qrisImage').src = config.qrisUrl;
+            
+            // Update grid background
+            const gridBg = document.querySelector('.grid-background');
+            const rgb = hexToRgb(config.primaryColor);
+            gridBg.style.backgroundImage = `
+                linear-gradient(rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.03) 1px, transparent 1px)
+            `;
+        }
+
+        // Convert hex to RGB
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : { r: 139, g: 92, b: 246 };
+        }
+
+        // Save configuration
+        async function saveConfig() {
+            try {
+                await window.storage.set('zephyra_config', JSON.stringify(config));
+                showNotification('Settings saved successfully!');
+            } catch (e) {
+                showNotification('Failed to save settings');
+            }
+        }
+
+        // Render payment cards
+        function renderPaymentCards() {
+            const grid = document.getElementById('paymentGrid');
+            const walletFormatted = formatPhoneNumber(config.walletNumber);
+            const walletClean = config.walletNumber.replace(/\D/g, '');
+            const waNumber = config.whatsappNumber;
+
+            grid.innerHTML = `
+                <!-- QRIS Payment -->
+                <div class="payment-module">
+                    <span class="status-badge status-active">Active</span>
+                    <div class="module-header">
+                        <div class="icon-wrapper">
+                            <div class="icon-border"></div>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/1200px-QR_code_for_mobile_English_Wikipedia.svg.png" alt="QRIS" class="payment-icon">
+                        </div>
+                        <div class="module-info">
+                            <h3>QRIS</h3>
+                            <p>Universal QR Payment</p>
+                        </div>
+                    </div>
+                    <p style="color: #94a3b8; margin-bottom: 1.5rem;">Scan QR code for instant payment across all supported platforms</p>
+                    <button class="btn-primary" onclick="showQrisModal()">SCAN QR CODE</button>
+                </div>
+
+                <!-- DANA Module -->
+                <div class="payment-module">
+                    <span class="status-badge status-active">Active</span>
+                    <div class="module-header">
+                        <div class="icon-wrapper">
+                            <div class="icon-border"></div>
+                            <img src="https://img100.pixhost.to/images/667/540082364_skyzopedia.jpg" alt="DANA" class="payment-icon">
+                        </div>
+                        <div class="module-info">
+                            <h3>DANA</h3>
+                            <p>Digital Wallet Payment</p>
+                        </div>
+                    </div>
+                    <div class="account-display" data-account="${walletClean}" onclick="copyAccount(this)">
+                        <div class="account-label">Account Number</div>
+                        <div class="account-value">${walletFormatted}</div>
+                        <div class="copy-indicator">CLICK TO COPY</div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn-primary" onclick="payWithWallet('DANA', '${walletFormatted}')">TRANSFER</button>
+                        <a href="https://wa.me/62${waNumber}?text=Hello%2C%20I%20want%20to%20confirm%20DANA%20payment" class="btn-secondary" target="_blank">CONFIRM</a>
+                    </div>
+                </div>
+
+                <!-- GoPay Module -->
+                <div class="payment-module">
+                    <span class="status-badge status-active">Active</span>
+                    <div class="module-header">
+                        <div class="icon-wrapper">
+                            <div class="icon-border"></div>
+                            <img src="https://img100.pixhost.to/images/667/540083275_skyzopedia.jpg" alt="GoPay" class="payment-icon">
+                        </div>
+                        <div class="module-info">
+                            <h3>GOPAY</h3>
+                            <p>Digital Wallet Payment</p>
+                        </div>
+                    </div>
+                    <div class="account-display" data-account="${walletClean}" onclick="copyAccount(this)">
+                        <div class="account-label">Account Number</div>
+                        <div class="account-value">${walletFormatted}</div>
+                        <div class="copy-indicator">CLICK TO COPY</div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn-primary" onclick="payWithWallet('GoPay', '${walletFormatted}')">TRANSFER</button>
+                        <a href="https://wa.me/62${waNumber}?text=Hello%2C%20I%20want%20to%20confirm%20GoPay%20payment" class="btn-secondary" target="_blank">CONFIRM</a>
+                    </div>
+                </div>
+
+                <!-- OVO Module -->
+                <div class="payment-module">
+                    <span class="status-badge status-inactive">Unavailable</span>
+                    <div class="module-header">
+                        <div class="icon-wrapper">
+                            <div class="icon-border"></div>
+                            <img src="https://img100.pixhost.to/images/667/540082774_skyzopedia.jpg" alt="OVO" class="payment-icon">
+                        </div>
+                        <div class="module-info">
+                            <h3>OVO</h3>
+                            <p>Currently Unavailable</p>
+                        </div>
+                    </div>
+                    <div class="account-display" data-account="${walletClean}" onclick="copyAccount(this)">
+                        <div class="account-label">Account Number</div>
+                        <div class="account-value">${walletFormatted}</div>
+                        <div class="copy-indicator">CLICK TO COPY</div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn-primary" style="opacity: 0.5; cursor: not-allowed;" disabled>UNAVAILABLE</button>
+                        <a href="https://wa.me/62${waNumber}?text=Hello%2C%20I%20want%20to%20confirm%20OVO%20payment" class="btn-secondary" target="_blank">CONTACT</a>
+                    </div>
+                </div>
+
+                <!-- SeaBank Module -->
+                <div class="payment-module">
+                    <span class="status-badge status-inactive">Coming Soon</span>
+                    <div class="module-header">
+                        <div class="icon-wrapper">
+                            <div class="icon-border"></div>
+                            <img src="https://files.catbox.moe/tm16jp.jpg" alt="SeaBank" class="payment-icon">
+                        </div>
+                        <div class="module-info">
+                            <h3>SEABANK</h3>
+                            <p>Coming Soon</p>
+                        </div>
+                    </div>
+                    <div class="account-display" data-account="${config.seabankNumber}" onclick="copyAccount(this)">
+                        <div class="account-label">Account Number</div>
+                        <div class="account-value">${config.seabankNumber}</div>
+                        <div class="copy-indicator">CLICK TO COPY</div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn-primary" style="opacity: 0.5; cursor: not-allowed;" disabled>COMING SOON</button>
+                        <a href="https://wa.me/62${waNumber}?text=Hello%2C%20I%20want%20to%20ask%20about%20SeaBank%20payment" class="btn-secondary" target="_blank">INQUIRE</a>
+                    </div>
+                </div>
+            `;
+
+            // Update WA link in modal
+            document.getElementById('waConfirm').href = `https://wa.me/62${waNumber}?text=Hello%2C%20I%20want%20to%20confirm%20QRIS%20payment`;
+        }
+
+        // Format phone number
+        function formatPhoneNumber(number) {
+            const clean = number.replace(/\D/g, '');
+            if (clean.length === 10) {
+                return clean.replace(/(\d{4})(\d{4})(\d{4})/, '$1-$2-$3');
+            } else if (clean.length === 12) {
+                return clean.replace(/(\d{4})(\d{4})(\d{4})/, '$1-$2-$3');
+            }
+            return clean;
+        }
+
+        // Copy account number
+        function copyAccount(element) {
+            const number = element.getAttribute('data-account');
+            navigator.clipboard.writeText(number).then(() => {
+                showNotification('NUMBER COPIED TO CLIPBOARD');
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = number;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showNotification('NUMBER COPIED TO CLIPBOARD');
+            });
+        }
+
+        // Payment functions
+        function payWithWallet(wallet, number) {
+            alert(`Payment request sent to ${number}. Please check your ${wallet} app to complete the transaction.`);
+        }
+
+        function showQrisModal() {
+            document.getElementById('qrisModal').style.display = 'flex';
+        }
+
+        // Show notification
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 2000);
+        }
+
+        // Create floating particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 8 + 's';
+                particle.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Navigation
+        document.getElementById('navPayments')?.addEventListener('click', () => {
+            document.getElementById('ownerDashboard').style.display = 'none';
+            document.querySelector('header').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        document.getElementById('navDashboard')?.addEventListener('click', () => {
+            if (currentUser && currentUser.isOwner) {
+                document.getElementById('ownerDashboard').style.display = 'block';
+                document.getElementById('ownerDashboard').scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        // Logout
+        document.getElementById('btnLogout')?.addEventListener('click', () => {
+            sessionStorage.removeItem('zephyra_user');
+            currentUser = null;
+            location.reload();
+        });
+
+        // Owner Settings - Color Preview
+        document.getElementById('primaryColor')?.addEventListener('input', (e) => {
+            document.getElementById('primaryPreview').style.background = e.target.value;
+        });
+
+        document.getElementById('secondaryColor')?.addEventListener('input', (e) => {
+            document.getElementById('secondaryPreview').style.background = e.target.value;
+        });
+
+        // Save Colors
+        document.getElementById('saveColors')?.addEventListener('click', async () => {
+            config.primaryColor = document.getElementById('primaryColor').value;
+            config.secondaryColor = document.getElementById('secondaryColor').value;
+            await saveConfig();
+            applyConfig();
+            renderPaymentCards();
+        });
+
+        // Save Numbers
+        document.getElementById('saveNumbers')?.addEventListener('click', async () => {
+            config.walletNumber = document.getElementById('walletNumber').value;
+            config.seabankNumber = document.getElementById('seabankNumber').value;
+            await saveConfig();
+            renderPaymentCards();
+        });
+
+        // Save QRIS
+        document.getElementById('saveQris')?.addEventListener('click', async () => {
+            config.qrisUrl = document.getElementById('qrisUrl').value;
+            config.whatsappNumber = document.getElementById('whatsappNumber').value;
+            await saveConfig();
+            applyConfig();
+            renderPaymentCards();
+        });
+
+        // Modal Controls
+        document.getElementById('closeModal')?.addEventListener('click', () => {
+            document.getElementById('qrisModal').style.display = 'none';
+        });
+
+        document.getElementById('confirmPayment')?.addEventListener('click', () => {
+            alert('Thank you! Your payment has been recorded.');
+            document.getElementById('qrisModal').style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === document.getElementById('qrisModal')) {
+                document.getElementById('qrisModal').style.display = 'none';
+            }
+        });
+
+        // Make functions global
+        window.handleCredentialResponse = handleCredentialResponse;
+        window.copyAccount = copyAccount;
+        window.payWithWallet = payWithWallet;
+        window.showQrisModal = showQrisModal;
+    </script>
+</body>
+</html>
